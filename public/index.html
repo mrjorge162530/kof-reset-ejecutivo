@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KOF Reset Ejecutivo</title>
+<meta name="description" content="Cuaderno práctico de 7 días del Sistema KOF. Tus respuestas se guardan en este dispositivo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600;1,700;1,800;1,900&display=swap">
+<style>
+/* ===== KOF RESET EJECUTIVO — cuaderno interactivo · rojo y blanco sobre negro ===== */
+:root{
+  --black:#0a0a0a; --black2:#121212; --black3:#1a1a1a; --line:#262626; --line2:#333;
+  --white:#fff; --txt:#f2f2f2; --soft:#c8c8c8; --mut:#9a9a9a;
+  --red:#C41230; --red-hi:#e0213f; --red-dim:#8a0d22;
+  --gold:var(--red); /* alias para estilos en línea */
+  --f:'Montserrat', 'Segoe UI', Arial, sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; -webkit-text-size-adjust:100%}
+body{margin:0; background:var(--black); color:var(--txt); font-family:var(--f); font-size:16px; line-height:1.6}
+button{font:inherit; color:inherit; cursor:pointer}
+input,textarea,select{font:inherit}
+a{color:var(--white)}
+:focus-visible{outline:2px solid var(--red-hi); outline-offset:3px}
+.it{font-style:italic; font-weight:800; letter-spacing:-.01em}
+
+/* ---------- logotipo ---------- */
+.logo{font-style:italic; font-weight:900; letter-spacing:-.02em; color:var(--white); line-height:1}
+.logo b{color:var(--red); font-weight:900}
+
+/* ---------- barra superior ---------- */
+.top{position:sticky; top:0; z-index:20; padding:12px 16px 0; background:rgba(10,10,10,.94); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border-bottom:1px solid var(--line)}
+.top-row{max-width:880px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:10px}
+.brand{display:flex; align-items:baseline; gap:12px; min-width:0}
+.brand-kof{font-size:24px}
+.brand-sub{font-size:11px; font-weight:700; letter-spacing:.22em; text-transform:uppercase; color:var(--soft); white-space:nowrap}
+.saved{font-size:12px; color:var(--mut); white-space:nowrap; transition:color .2s}
+.saved.flash{color:var(--white)}
+.menu-btn{background:transparent; border:1px solid var(--line2); border-radius:999px; padding:7px 16px; font-weight:600; font-size:13px; letter-spacing:.04em}
+.menu-btn:hover{border-color:var(--white)}
+
+.prog{max-width:880px; margin:12px auto 0; display:flex; align-items:center; gap:12px}
+.prog-bar{flex:1; height:3px; background:var(--line); border-radius:3px; overflow:hidden}
+.prog-fill{height:100%; width:0; background:var(--red); transition:width .5s cubic-bezier(.2,.7,.2,1)}
+.prog-txt{font-size:12px; font-weight:700; letter-spacing:.12em; color:var(--soft); white-space:nowrap}
+
+.rounds{max-width:880px; margin:0 auto; display:flex; gap:4px; overflow-x:auto; padding:12px 0 12px; scrollbar-width:none}
+.rounds::-webkit-scrollbar{display:none}
+.rd{flex:none; position:relative; min-width:52px; padding:7px 10px; background:transparent; border:1px solid transparent; border-radius:10px; text-align:center; transition:.2s}
+.rd > span{display:block}
+.rd small{display:block; font-size:9px; letter-spacing:.2em; color:var(--mut); font-weight:700}
+.rd b{display:block; font-style:italic; font-weight:800; font-size:20px; line-height:1.1; color:var(--soft)}
+.rd.wide b{font-size:12px; letter-spacing:.08em; padding:4px 0 2px}
+.rd:hover{border-color:var(--line2)}
+.rd.on{background:var(--white); border-color:var(--white)}
+.rd.on b, .rd.on small{color:var(--black)}
+.rd.done:not(.on) b{color:var(--white)}
+.rd.done::after{content:''; position:absolute; top:6px; right:6px; width:6px; height:6px; border-radius:50%; background:var(--red)}
+.rd .hoy{position:absolute; bottom:-7px; left:50%; transform:translateX(-50%); background:var(--red); color:#fff; font-style:normal; font-size:8px; letter-spacing:.12em; font-weight:800; padding:1px 6px; border-radius:999px}
+
+.drop{position:absolute; right:16px; top:56px; z-index:30; background:var(--black2); border:1px solid var(--line2); border-radius:12px; padding:6px; min-width:250px; box-shadow:0 20px 50px rgba(0,0,0,.6)}
+.drop[hidden]{display:none}
+.drop button{display:block; width:100%; text-align:left; background:none; border:0; padding:11px 14px; border-radius:8px; font-size:14px; font-weight:500}
+.drop button:hover{background:var(--black3)}
+.drop .danger{color:#ff6b82}
+.drop hr{border:0; border-top:1px solid var(--line); margin:4px 0}
+
+/* ---------- contenido ---------- */
+main{max-width:880px; margin:0 auto; padding:36px 16px 72px}
+.view{display:none}
+.view.on{display:block; animation:in .35s cubic-bezier(.2,.7,.2,1)}
+@keyframes in{from{opacity:0; transform:translateY(8px)}to{opacity:1; transform:none}}
+
+.hero{padding:28px 0 8px}
+.hero .wordmark{font-size:clamp(72px,20vw,148px)}
+.hero h1{font-style:italic; font-weight:900; font-size:clamp(30px,7.4vw,58px); line-height:1.02; letter-spacing:-.02em; margin:6px 0 0; text-transform:uppercase; color:var(--white)}
+.hero h1 span{color:var(--red)}
+.hero .rule{width:56px; height:3px; background:var(--red); margin:26px 0 22px}
+.hero .lead{font-size:clamp(19px,4.4vw,24px); font-weight:700; font-style:italic; margin:0 0 10px; max-width:600px; color:var(--white); line-height:1.35}
+.hero p{color:var(--soft); max-width:600px; margin:0}
+
+.card{background:var(--black2); border:1px solid var(--line); border-radius:16px; padding:24px; margin:20px 0}
+.card h3, .h-card{font-style:italic; font-weight:800; font-size:20px; margin:0 0 12px; text-transform:uppercase; letter-spacing:-.005em; color:var(--white)}
+.warn{border-left:3px solid var(--red)}
+.warn .h-card{color:var(--white)}
+.warn p{color:var(--soft)}
+
+.name-row{display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end}
+.name-row label{flex:1 1 220px}
+
+.cta{display:inline-flex; align-items:center; justify-content:center; background:var(--red); color:var(--white); border:1px solid var(--red); font-style:italic; font-weight:800; font-size:15px; letter-spacing:.06em; padding:14px 30px; border-radius:999px; text-transform:uppercase; transition:.2s; text-decoration:none}
+.cta:hover{background:var(--red-hi); border-color:var(--red-hi); transform:translateY(-1px)}
+.cta.ghost{background:transparent; color:var(--white); border-color:var(--line2)}
+.cta.ghost:hover{border-color:var(--white); background:transparent}
+.cta.ok{background:var(--white); color:var(--black); border-color:var(--white)}
+.cta.ok:hover{background:#e6e6e6}
+.cta.ok.ghost{background:transparent; color:var(--white); border-color:var(--red)}
+
+.how{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; margin:20px 0 0; padding:0; list-style:none; background:var(--line); border:1px solid var(--line); border-radius:12px; overflow:hidden}
+.how li{background:var(--black); padding:16px}
+.how b{display:block; font-style:italic; font-weight:900; color:var(--red-hi); font-size:26px; line-height:1; margin-bottom:6px}
+.how span{color:var(--soft); font-size:14px}
+
+/* cabecera de día */
+.day-head{display:flex; align-items:center; gap:18px; margin:0 0 8px}
+.day-num{flex:none; font-style:italic; font-weight:900; font-size:76px; line-height:.9; color:var(--red); letter-spacing:-.04em}
+.day-head small{display:block; font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--mut); font-weight:700}
+.day-head h2{font-style:italic; font-weight:900; font-size:clamp(24px,5.6vw,36px); line-height:1.05; margin:4px 0 0; text-transform:uppercase; letter-spacing:-.015em; color:var(--white)}
+.phase{display:inline-block; font-size:11px; letter-spacing:.22em; font-weight:800; text-transform:uppercase; color:#ff4d68; border:1px solid var(--red-dim); padding:4px 12px; border-radius:999px; margin-bottom:18px}
+.situ{background:var(--black2); border:1px solid var(--line); border-left:3px solid var(--red); border-radius:12px; padding:16px 18px; margin:22px 0; color:var(--soft)}
+.situ b{display:block; font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--red-hi); margin-bottom:4px; font-weight:800}
+.intro{color:var(--soft); font-size:17px; margin:18px 0}
+.intro b{color:var(--white)}
+.ref{border:1px dashed var(--line2); border-radius:12px; padding:12px 16px; color:var(--soft); font-size:14px; margin:16px 0}
+.ref b{color:var(--white)}
+.ref.empty{color:var(--mut)}
+
+/* campos */
+.q{margin:28px 0}
+.q > .lbl, label > .lbl{display:block; font-weight:700; font-size:16px; margin-bottom:8px; color:var(--white)}
+.hint{display:block; color:var(--mut); font-size:13px; font-weight:500; margin-top:-4px; margin-bottom:10px}
+textarea, input[type=text], input[type=number], input[type=time], select{width:100%; background:var(--black2); color:var(--txt); border:1px solid var(--line2); border-radius:10px; padding:12px 14px; font-size:16px; transition:border-color .2s, background .2s}
+textarea{min-height:84px; resize:vertical; line-height:1.55; overflow:hidden}
+textarea:focus, input:focus, select:focus{outline:none; border-color:var(--white); background:var(--black3)}
+::placeholder{color:#8a8a8a}
+select{appearance:none; background-image:linear-gradient(45deg,transparent 50%,var(--soft) 50%),linear-gradient(135deg,var(--soft) 50%,transparent 50%); background-position:calc(100% - 18px) 50%, calc(100% - 13px) 50%; background-size:5px 5px; background-repeat:no-repeat; padding-right:34px}
+input[type=time]{color-scheme:dark}
+
+.grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+.win{display:grid; grid-template-columns:44px 1fr 1fr 1.4fr; gap:10px; align-items:end; margin-bottom:14px}
+.win-tag{font-style:italic; font-weight:900; font-size:26px; color:var(--red); text-align:center; height:48px; display:grid; place-items:center; border:1px solid var(--line2); border-radius:10px}
+.sub-lbl{display:block; font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--mut); font-weight:700; margin-bottom:6px}
+.meal{display:grid; grid-template-columns:110px 1fr; gap:12px; align-items:center; margin-bottom:10px}
+.meal span{font-weight:700; font-style:italic; color:var(--white)}
+
+/* chips */
+.chips{display:flex; flex-wrap:wrap; gap:8px}
+.chip{position:relative}
+.chip input{position:absolute; opacity:0; inset:0; margin:0; cursor:pointer}
+.chip span{display:inline-flex; align-items:center; gap:8px; padding:9px 18px; border:1px solid var(--line2); border-radius:999px; background:transparent; font-weight:600; font-size:14px; transition:.2s; user-select:none; color:var(--soft)}
+.chip input:hover + span{border-color:var(--white); color:var(--white)}
+.chip input:focus-visible + span{outline:2px solid var(--red-hi); outline-offset:2px}
+.chip input:checked + span{background:var(--red); border-color:var(--red); color:var(--white)}
+.chip.no input:checked + span{background:var(--white); border-color:var(--white); color:var(--black)}
+.chip.box span::before{content:''; width:13px; height:13px; border:1.5px solid currentColor; border-radius:3px; flex:none}
+.chip.box input:checked + span::before{background:var(--white); border-color:var(--white); box-shadow:inset 0 0 0 2px var(--red)}
+
+.scale{display:grid; grid-template-columns:repeat(10,1fr); gap:6px; max-width:540px}
+.scale.short{grid-template-columns:repeat(var(--n),minmax(44px,1fr)); max-width:none; width:max-content}
+.scale .chip span{justify-content:center; width:100%; padding:10px 0; border-radius:10px; font-style:italic; font-weight:800; font-size:16px}
+.scale-legend{display:flex; justify-content:space-between; max-width:540px; font-size:12px; color:var(--mut); margin-top:6px}
+
+.note{font-size:14px; color:var(--white); margin-top:10px; padding-left:12px; border-left:2px solid var(--red)}
+.note[hidden]{display:none}
+
+.day-foot{display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between; align-items:center; margin-top:40px; padding-top:24px; border-top:1px solid var(--line)}
+.nav-btns{display:flex; gap:8px}
+
+/* checklist */
+.check{width:100%; border-collapse:collapse}
+.check td{padding:14px 8px; border-bottom:1px solid var(--line); vertical-align:middle}
+.check tr:last-child td{border-bottom:0}
+.check td:first-child{font-style:italic; font-weight:900; color:var(--red); font-size:20px; width:40px; text-align:center}
+.check td:last-child{width:56px; text-align:right}
+.check tr.done td:nth-child(2){color:var(--mut); text-decoration:line-through; text-decoration-color:var(--red)}
+.tick{width:30px; height:30px; border-radius:50%; border:1px solid var(--line2); background:transparent; display:inline-grid; place-items:center; font-weight:800; font-size:14px; color:var(--white); transition:.2s}
+.tick:hover{border-color:var(--white)}
+.tick[aria-pressed=true]{background:var(--red); border-color:var(--red)}
+.tick[aria-pressed=true]::after{content:'✓'}
+
+.summary{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.sum{background:var(--black); border:1px solid var(--line); border-radius:12px; padding:14px 16px}
+.sum small{display:block; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--red-hi); font-weight:800; margin-bottom:6px}
+.sum p{margin:0; white-space:pre-wrap; color:var(--txt); font-size:15px}
+.sum p.empty{color:var(--mut); font-style:italic}
+.sum.full{grid-column:1/-1}
+.stat{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:12px; overflow:hidden}
+.stat > div{text-align:center; background:var(--black); padding:16px 8px}
+.stat b{display:block; font-style:italic; font-weight:900; font-size:34px; color:var(--white); line-height:1.05}
+.stat span{font-size:11px; color:var(--mut); letter-spacing:.2em; text-transform:uppercase; font-weight:700}
+
+.offers{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:16px}
+.offer{background:var(--black); border:1px solid var(--line); border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:10px}
+.offer small{font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--mut); font-weight:800}
+.offer h3{font-style:italic; font-weight:900; font-size:20px; margin:0; line-height:1.1; text-transform:uppercase; color:var(--white)}
+.offer p{margin:0; color:var(--soft); font-size:14px; flex:1}
+.offer a{font-weight:700; font-size:14px; text-decoration:none; color:var(--white); border-bottom:1px solid var(--red); align-self:flex-start; padding-bottom:2px}
+.offer.hl{border-color:var(--red)}
+.offer.hl small{color:var(--red-hi)}
+
+.legal{color:var(--mut); font-size:13px; text-align:center; margin-top:32px}
+footer{text-align:center; color:var(--mut); font-size:11px; letter-spacing:.22em; text-transform:uppercase; padding:0 16px 36px}
+footer .logo{font-size:15px; letter-spacing:0; margin-right:6px}
+
+.print-only{display:none}
+
+@media (max-width:640px){
+  .how, .offers, .summary{grid-template-columns:1fr}
+  .grid3{gap:8px}
+  .win{grid-template-columns:40px 1fr 1fr; grid-template-rows:auto auto; align-items:end}
+  .win-tag{grid-row:1/3; height:auto; align-self:stretch}
+  .win .w-lugar{grid-column:2/4}
+  .meal{grid-template-columns:1fr; gap:4px}
+  .scale{grid-template-columns:repeat(5,1fr)}
+  .scale.short{width:auto; grid-template-columns:repeat(var(--n),1fr)}
+  .day-num{font-size:58px}
+  .card{padding:18px}
+  .saved, .brand-sub{display:none}
+  main{padding-top:26px}
+}
+
+/* ---------- impresión / PDF ---------- */
+@media print{
+  @page{margin:14mm}
+  body{background:#fff; color:#111; font-size:11pt}
+  .top, .day-foot, .no-print, .rounds, .drop{display:none !important}
+  .print-only{display:block}
+  main{padding:0; max-width:none}
+  .view{display:block !important; animation:none; break-before:page}
+  .view:first-child{break-before:auto}
+  .logo, .hero h1, .day-head h2, .card h3, .h-card, .offer h3, .stat b, .meal span, .q > .lbl, label > .lbl, .intro b, .ref b, .note, .hero .lead{color:#111}
+  .hero p, .intro, .offer p, .sum p, .how span, .situ, .warn p, .ref{color:#222}
+  .hint, .sub-lbl, .day-head small, .stat span, .scale-legend, .offer small, .legal, .ref.empty{color:#555}
+  .card, .situ, .sum, .offer, .how li, .stat > div, .ref{background:#fff !important; border-color:#bbb; box-shadow:none}
+  textarea, input, select{background:#fff !important; color:#111 !important; border:0; border-bottom:1px solid #999; border-radius:0}
+  .chip span{background:#fff; color:#111; border-color:#999}
+  .chip input:checked + span{background:#111 !important; color:#fff !important; border-color:#111 !important}
+  .tick{border-color:#111}
+  .phase{color:#a00; border-color:#a00}
+  .tick[aria-pressed=true]{background:#111}
+  .q, .sum, .offer, tr{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-row">
+    <div class="brand">
+      <span class="brand-kof logo"><b>K</b>OF</span>
+      <span class="brand-sub">Reset Ejecutivo</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px">
+      <span class="saved" id="saved">Guardado en este dispositivo</span>
+      <button class="menu-btn" id="menuBtn" aria-haspopup="true" aria-expanded="false">☰ Menú</button>
+    </div>
+  </div>
+  <div class="prog" aria-label="Progreso de la semana">
+    <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+    <span class="prog-txt" id="progTxt">0 / 7 DÍAS</span>
+  </div>
+  <nav class="rounds" id="rounds" aria-label="Días del programa"></nav>
+  <div class="drop" id="drop" hidden>
+    <button data-act="print">🖨️ Imprimir o guardar en PDF</button>
+    <button data-act="export">⬇️ Descargar copia de mis respuestas</button>
+    <button data-act="import">⬆️ Cargar copia guardada</button>
+    <hr>
+    <button data-act="reset" class="danger">Borrar todo y empezar de nuevo</button>
+  </div>
+  <input type="file" id="importFile" accept=".json,application/json" hidden>
+</header>
+
+<main id="main">
+
+<!-- ============ INICIO ============ -->
+<section class="view" data-view="inicio">
+  <div class="hero">
+    <div class="logo wordmark" aria-hidden="true"><b>K</b>OF</div>
+    <h1>Reset <span>Ejecutivo</span></h1>
+    <div class="rule"></div>
+    <p class="lead">Tu primera semana para dejar de empezar de cero.</p>
+    <p>Este cuaderno acompaña los vídeos y las rutinas del programa. Completa solo la tarea de cada día. No necesitas hacerlo perfecto: necesitas un plan que puedas repetir.</p>
+  </div>
+
+  <div class="card">
+    <div class="name-row">
+      <label><span class="lbl">¿Cómo te llamas?</span>
+        <input type="text" data-k="nombre" placeholder="Tu nombre" autocomplete="given-name"></label>
+    </div>
+    <ul class="how">
+      <li><b>1</b><span>Mira el vídeo del día y abre aquí su tarea.</span></li>
+      <li><b>2</b><span>Escribe tus respuestas. Se guardan solas en este dispositivo.</span></li>
+      <li><b>3</b><span>Marca el día como completado y vuelve mañana.</span></li>
+    </ul>
+  </div>
+
+  <div class="card warn">
+    <h2 class="h-card">Antes de comenzar</h2>
+    <p style="margin:0">Si tienes lesiones, síntomas, limitaciones médicas o llevas mucho tiempo inactivo, busca orientación profesional antes de empezar. Ajusta la intensidad a tu nivel. El peso y la cintura son referencias opcionales, no un examen.</p>
+  </div>
+
+  <div style="margin-top:30px" class="no-print">
+    <button class="cta" id="startBtn"><span>Empezar Día 1 ▶</span></button>
+    <p class="hint" id="startHint" style="margin-top:14px"></p>
+  </div>
+</section>
+
+<!-- ============ DÍA 1 ============ -->
+<section class="view" data-view="1">
+  <div class="day-head"><div class="day-num">01</div><div><small>Round 1</small><h2>Tu punto de partida</h2></div></div>
+  <div class="situ"><b>Situación</b>Llega el lunes y no sabes dónde encajar el gimnasio. Hoy no necesitas motivarte: necesitas entender qué te frena.</div>
+
+  <div class="q">
+    <span class="lbl">¿Qué suele impedirte cumplir?</span>
+    <span class="hint">Marca lo que aplique y cuéntalo con tus palabras.</span>
+    <div class="chips" style="margin-bottom:10px">
+      <label class="chip box"><input type="checkbox" data-k="d1_obs_reuniones"><span>Reuniones</span></label>
+      <label class="chip box"><input type="checkbox" data-k="d1_obs_cansancio"><span>Cansancio</span></label>
+      <label class="chip box"><input type="checkbox" data-k="d1_obs_viajes"><span>Viajes</span></label>
+      <label class="chip box"><input type="checkbox" data-k="d1_obs_familia"><span>Familia</span></label>
+      <label class="chip box"><input type="checkbox" data-k="d1_obs_horarios"><span>Horarios</span></label>
+    </div>
+    <textarea data-k="d1_obstaculo" placeholder="Ej.: las reuniones se alargan y llego sin energía a la tarde…"></textarea>
+  </div>
+
+  <div class="q">
+    <label for="d1m" class="lbl">Esta semana tengo disponibles estos momentos:</label>
+    <textarea id="d1m" data-k="d1_momentos" placeholder="Ej.: martes y jueves 6:30 a. m., sábado por la mañana…"></textarea>
+  </div>
+
+  <div class="q">
+    <span class="lbl">Punto de partida <span style="color:var(--mut); font-weight:500">(opcional)</span></span>
+    <div class="grid3">
+      <label><span class="sub-lbl">Peso</span><input type="text" inputmode="decimal" data-k="d1_peso" placeholder="kg / lb"></label>
+      <label><span class="sub-lbl">Cintura</span><input type="text" inputmode="decimal" data-k="d1_cintura" placeholder="cm / in"></label>
+      <div></div>
+    </div>
+    <span class="sub-lbl" style="margin-top:14px">Energía hoy (1–10)</span>
+    <div class="scale" data-scale="d1_energia" data-min="1" data-max="10"></div>
+    <div class="scale-legend"><span>Agotado</span><span>A tope</span></div>
+  </div>
+  <div class="day-foot" data-day="1"></div>
+</section>
+
+<!-- ============ DÍA 2 ============ -->
+<section class="view" data-view="2">
+  <div class="day-head"><div class="day-num">02</div><div><small>Round 2</small><h2>Tu agenda, tu sistema</h2></div></div>
+  <p class="intro">Selecciona tres ventanas realistas para moverte. Deja un día de recuperación entre sesiones intensas cuando sea posible.</p>
+  <div class="ref" data-ref="d1_momentos"></div>
+
+  <div class="q">
+    <div class="win">
+      <div class="win-tag">A</div>
+      <label><span class="sub-lbl">Día</span><select data-k="d2_a_dia" data-days></select></label>
+      <label><span class="sub-lbl">Hora</span><input type="time" data-k="d2_a_hora"></label>
+      <label class="w-lugar"><span class="sub-lbl">Lugar</span><input type="text" data-k="d2_a_lugar" placeholder="Gimnasio, casa, hotel…"></label>
+    </div>
+    <div class="win">
+      <div class="win-tag">B</div>
+      <label><span class="sub-lbl">Día</span><select data-k="d2_b_dia" data-days></select></label>
+      <label><span class="sub-lbl">Hora</span><input type="time" data-k="d2_b_hora"></label>
+      <label class="w-lugar"><span class="sub-lbl">Lugar</span><input type="text" data-k="d2_b_lugar" placeholder="Gimnasio, casa, hotel…"></label>
+    </div>
+    <div class="win">
+      <div class="win-tag">C</div>
+      <label><span class="sub-lbl">Día</span><select data-k="d2_c_dia" data-days></select></label>
+      <label><span class="sub-lbl">Hora</span><input type="time" data-k="d2_c_hora"></label>
+      <label class="w-lugar"><span class="sub-lbl">Lugar</span><input type="text" data-k="d2_c_lugar" placeholder="Gimnasio, casa, hotel…"></label>
+    </div>
+    <p class="note" id="recoveryNote" hidden>⚠ Tienes ventanas en días seguidos. Si puedes, deja un día de recuperación entre sesiones intensas.</p>
+  </div>
+
+  <div class="q">
+    <label for="d2alt" class="lbl">Si una sesión falla, mi alternativa de 10–15 minutos será:</label>
+    <textarea id="d2alt" data-k="d2_alternativa" placeholder="Ej.: 15 min de caminata después de comer o movilidad en casa…"></textarea>
+  </div>
+  <div class="day-foot" data-day="2"></div>
+</section>
+
+<!-- ============ DÍA 3 ============ -->
+<section class="view" data-view="3">
+  <div class="day-head"><div class="day-num">03</div><div><small>Round 3</small><h2>Primer entrenamiento</h2></div></div>
+  <p class="intro">Abre tu rutina <b>Fuerza Total KOF</b> del nivel apropiado. Prioriza técnica y control; detente ante dolor inusual.</p>
+  <div class="ref" data-ref="win_a"></div>
+
+  <div class="q">
+    <span class="lbl">Sesión realizada</span>
+    <div class="chips">
+      <label class="chip yes"><input type="radio" name="d3_sesion" data-k="d3_sesion" value="si"><span>Sí</span></label>
+      <label class="chip no"><input type="radio" name="d3_sesion" data-k="d3_sesion" value="no"><span>No</span></label>
+      <label class="chip"><input type="radio" name="d3_sesion" data-k="d3_sesion" value="adaptada"><span>Adaptada</span></label>
+    </div>
+  </div>
+  <div class="q">
+    <label for="d3f" class="lbl">¿Qué me facilitó cumplir hoy?</label>
+    <textarea id="d3f" data-k="d3_facilito" placeholder="Ej.: dejé la ropa lista la noche anterior…"></textarea>
+  </div>
+  <div class="day-foot" data-day="3"></div>
+</section>
+
+<!-- ============ DÍA 4 ============ -->
+<section class="view" data-view="4">
+  <span class="phase">Semana de acción</span>
+  <div class="day-head"><div class="day-num">04</div><div><small>Round 4</small><h2>Alimentación sin extremos</h2></div></div>
+  <div class="situ"><b>Situación</b>Almuerzo entre reuniones. El objetivo no es comer perfecto: es tener una opción sencilla antes de tener hambre.</div>
+
+  <div class="q">
+    <span class="lbl">Escribe una opción realista para cada comida:</span>
+    <label class="meal"><span>Desayuno</span><input type="text" data-k="d4_desayuno" placeholder="Ej.: huevos + fruta + café"></label>
+    <label class="meal"><span>Almuerzo</span><input type="text" data-k="d4_almuerzo" placeholder="Ej.: proteína + arroz + ensalada"></label>
+    <label class="meal"><span>Cena</span><input type="text" data-k="d4_cena" placeholder="Ej.: pollo + vegetales"></label>
+  </div>
+  <div class="q">
+    <label for="d4f" class="lbl">Mi alternativa si debo comer fuera:</label>
+    <textarea id="d4f" data-k="d4_fuera" placeholder="Ej.: pido plato con proteína a la plancha y cambio el frito por ensalada…"></textarea>
+  </div>
+  <div class="day-foot" data-day="4"></div>
+</section>
+
+<!-- ============ DÍA 5 ============ -->
+<section class="view" data-view="5">
+  <span class="phase">Semana de acción</span>
+  <div class="day-head"><div class="day-num">05</div><div><small>Round 5</small><h2>Segunda sesión</h2></div></div>
+  <p class="intro">Realiza la segunda sesión de <b>Fuerza Total KOF</b>, si has recuperado lo suficiente. Si no, mueve la sesión al siguiente espacio disponible.</p>
+  <div class="ref" data-ref="win_b"></div>
+
+  <div class="q">
+    <span class="lbl">Sesión realizada</span>
+    <div class="chips">
+      <label class="chip yes"><input type="radio" name="d5_sesion" data-k="d5_sesion" value="si"><span>Sí</span></label>
+      <label class="chip no"><input type="radio" name="d5_sesion" data-k="d5_sesion" value="no"><span>No</span></label>
+      <label class="chip"><input type="radio" name="d5_sesion" data-k="d5_sesion" value="reprogramada"><span>Reprogramada</span></label>
+    </div>
+  </div>
+  <div class="q">
+    <label for="d5a" class="lbl">¿Qué ajustaré para la siguiente sesión?</label>
+    <textarea id="d5a" data-k="d5_ajuste" placeholder="Ej.: subir un poco el peso en sentadilla, llegar 10 min antes…"></textarea>
+  </div>
+  <div class="day-foot" data-day="5"></div>
+</section>
+
+<!-- ============ DÍA 6 ============ -->
+<section class="view" data-view="6">
+  <span class="phase">Semana de acción</span>
+  <div class="day-head"><div class="day-num">06</div><div><small>Round 6</small><h2>Plan B cuando el trabajo aprieta</h2></div></div>
+  <div class="situ"><b>Situación</b>Se alargó una reunión y se perdió el horario del gimnasio. Evita el “ya dañé la semana”. Elige una acción pequeña.</div>
+
+  <div class="q">
+    <span class="lbl">Mi mínimo viable</span>
+    <div class="chips">
+      <label class="chip box"><input type="checkbox" data-k="d6_mv_caminata"><span>10–15 min de caminata o movilidad</span></label>
+      <label class="chip box"><input type="checkbox" data-k="d6_mv_comida"><span>Comida organizada</span></label>
+      <label class="chip box"><input type="checkbox" data-k="d6_mv_manana"><span>Preparar mañana</span></label>
+    </div>
+  </div>
+  <div class="ref" data-ref="d2_alternativa"></div>
+  <div class="q">
+    <label for="d6o" class="lbl">¿Cuál es el obstáculo más probable de mi próxima semana?</label>
+    <textarea id="d6o" data-k="d6_obstaculo" placeholder="Ej.: viaje de trabajo el miércoles…"></textarea>
+  </div>
+  <div class="q">
+    <label for="d6h" class="lbl">Cuando ocurra, haré esto:</label>
+    <textarea id="d6h" data-k="d6_accion" placeholder="Ej.: rutina de 15 min en la habitación del hotel antes del desayuno…"></textarea>
+  </div>
+  <div class="day-foot" data-day="6"></div>
+</section>
+
+<!-- ============ DÍA 7 ============ -->
+<section class="view" data-view="7">
+  <span class="phase">Semana de acción</span>
+  <div class="day-head"><div class="day-num">07</div><div><small>Round 7 · Final</small><h2>Cierre y continuidad</h2></div></div>
+  <p class="intro">Revisa tu semana. Si corresponde por tu nivel y descanso, completa la tercera sesión; si no, prográmala para después.</p>
+  <div class="ref" data-ref="win_c"></div>
+
+  <div class="q">
+    <span class="lbl">Entrenamientos completados (de 3)</span>
+    <span class="hint" id="trainHint"></span>
+    <div class="scale short" style="--n:4" data-scale="d7_entrenos" data-min="0" data-max="3"></div>
+  </div>
+  <div class="q">
+    <span class="lbl">Comidas planificadas (días)</span>
+    <div class="scale short" style="--n:8" data-scale="d7_comidas" data-min="0" data-max="7"></div>
+  </div>
+  <div class="q">
+    <span class="lbl">Energía hoy (1–10)</span>
+    <span class="hint" id="energyHint"></span>
+    <div class="scale" data-scale="d7_energia" data-min="1" data-max="10"></div>
+    <div class="scale-legend"><span>Agotado</span><span>A tope</span></div>
+  </div>
+  <div class="q">
+    <label for="d7a" class="lbl">Mayor aprendizaje:</label>
+    <textarea id="d7a" data-k="d7_aprendizaje"></textarea>
+  </div>
+  <div class="q">
+    <label for="d7c" class="lbl">Mi compromiso concreto para la próxima semana:</label>
+    <textarea id="d7c" data-k="d7_compromiso" placeholder="Ej.: entrenar lunes, miércoles y viernes a las 6:30 a. m. y tener el almuerzo listo…"></textarea>
+  </div>
+  <div class="day-foot" data-day="7"></div>
+</section>
+
+<!-- ============ CIERRE ============ -->
+<section class="view" data-view="cierre">
+  <div class="hero" style="padding-top:4px">
+    
+    <h1>Checklist y <span>siguiente paso</span></h1>
+    <div class="rule"></div>
+    <p class="print-only" id="printName"></p>
+  </div>
+
+  <div class="card">
+    <h2 class="h-card">Checklist de los siete días</h2>
+    <table class="check" id="checkTable"></table>
+  </div>
+
+  <div class="card">
+    <h2 class="h-card">Tu semana en una página</h2>
+    <div class="stat" style="margin-bottom:12px">
+      <div><b id="stDays">0/7</b><span>Días</span></div>
+      <div><b id="stTrain">–</b><span>Entrenos</span></div>
+      <div><b id="stEnergy">–</b><span>Energía</span></div>
+    </div>
+    <div class="summary">
+      <div class="sum"><small>Mi obstáculo principal</small><p data-sum="obstaculo"></p></div>
+      <div class="sum"><small>Mis ventanas</small><p data-sum="ventanas"></p></div>
+      <div class="sum"><small>Mi Plan B</small><p data-sum="planb"></p></div>
+      <div class="sum"><small>Mayor aprendizaje</small><p data-sum="aprendizaje"></p></div>
+      <div class="sum full"><small>Mi compromiso para la próxima semana</small><p data-sum="compromiso"></p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 class="h-card">Tu siguiente paso</h2>
+    <p style="margin:0; color:var(--soft)">Elige cómo quieres continuar después del Reset.</p>
+    <div class="offers">
+      <div class="offer"><small>Continuar solo · 30 días</small><h3>KOF Autoguiado</h3><p>Si quieres continuar por tu cuenta con una guía clara para el siguiente mes.</p><a data-link="autoguiado" hidden>Conocer Autoguiado →</a></div>
+      <div class="offer hl"><small>Estructura · 90 días</small><h3>KOF Fundamentos</h3><p>Si prefieres una estructura de 90 días y el apoyo de una comunidad.</p><a data-link="fundamentos" hidden>Conocer Fundamentos →</a></div>
+      <div class="offer"><small>Personalizado · individual</small><h3>KOF Transformación o Alto Rendimiento</h3><p>Si necesitas personalización o acompañamiento individual, solicita una evaluación.</p><a data-link="evaluacion" hidden>Solicitar evaluación →</a></div>
+    </div>
+  </div>
+
+  <p class="legal">El Reset no sustituye una evaluación clínica ni garantiza cambios corporales específicos en siete días.</p>
+</section>
+
+</main>
+<footer><span class="logo"><b>K</b>OF</span> Reset Ejecutivo</footer>
+
+<script>
+/* ===== Configuración: pega aquí los enlaces de tus programas (vacío = no se muestra el botón) ===== */
+const LINKS = {
+  autoguiado: '',
+  fundamentos: '',
+  evaluacion: ''   // p. ej. 'https://wa.me/1809XXXXXXX?text=Quiero%20una%20evaluaci%C3%B3n'
+};
+
+const KEY = 'kof-reset-ejecutivo-v1';
+const DAYS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+const CHECK = [
+  'Identifiqué mi obstáculo principal',
+  'Reservé mis ventanas de entrenamiento',
+  'Hice o adapté mi primera sesión',
+  'Organicé opciones de comida',
+  'Hice o reprogramé la segunda sesión',
+  'Preparé mi Plan B',
+  'Revisé mis avances y próxima semana'
+];
+const VIEWS = ['inicio','1','2','3','4','5','6','7','cierre'];
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+
+/* ---------- estado ---------- */
+function blank(){ return {f:{}, done:{}, start:null, view:'inicio'}; }
+let S = blank();
+try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(blank(), JSON.parse(raw)); } catch(e) {}
+let saveTimer;
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {}
+  const el = $('#saved'); el.textContent = '✓ Guardado'; el.classList.add('flash');
+  clearTimeout(saveTimer); saveTimer = setTimeout(()=>{ el.textContent = 'Guardado en este dispositivo'; el.classList.remove('flash'); }, 1400);
+  render();
+}
+const v = k => (S.f[k] ?? '').toString().trim();
+
+/* ---------- construir controles ---------- */
+$$('select[data-days]').forEach(sel => {
+  sel.innerHTML = '<option value="">—</option>' + DAYS.map(d => `<option>${d}</option>`).join('');
+});
+$$('[data-scale]').forEach(box => {
+  const k = box.dataset.scale, min = +box.dataset.min, max = +box.dataset.max;
+  for (let i = min; i <= max; i++) {
+    box.insertAdjacentHTML('beforeend',
+      `<label class="chip"><input type="radio" name="${k}" data-k="${k}" value="${i}" aria-label="${i}"><span>${i}</span></label>`);
+  }
+});
+$$('.day-foot').forEach(foot => {
+  const d = +foot.dataset.day;
+  foot.innerHTML = `
+    <button class="cta ok" data-done="${d}"><span></span></button>
+    <div class="nav-btns">
+      <button class="cta ghost" data-go="${d === 1 ? 'inicio' : d - 1}"><span>◀</span></button>
+      <button class="cta ghost" data-go="${d === 7 ? 'cierre' : d + 1}"><span>${d === 7 ? 'Ver mi semana ▶' : 'Día ' + (d + 1) + ' ▶'}</span></button>
+    </div>`;
+});
+$('#checkTable').innerHTML = CHECK.map((t, i) =>
+  `<tr data-row="${i+1}"><td>${i+1}</td><td>${t}</td><td><button class="tick" data-tick="${i+1}" aria-label="Día ${i+1} hecho"></button></td></tr>`).join('');
+Object.entries(LINKS).forEach(([k, url]) => {
+  const a = $(`[data-link="${k}"]`);
+  if (a && url) { a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.hidden = false; }
+});
+
+/* ---------- enlazar campos ---------- */
+function autosize(t){ t.style.height = 'auto'; t.style.height = Math.max(76, t.scrollHeight + 2) + 'px'; }
+function bindFields(){
+  $$('[data-k]').forEach(el => {
+    const k = el.dataset.k;
+    if (el.type === 'radio') el.checked = S.f[k] === el.value;
+    else if (el.type === 'checkbox') el.checked = !!S.f[k];
+    else el.value = S.f[k] ?? '';
+  });
+}
+bindFields();
+document.addEventListener('input', e => {
+  const el = e.target, k = el.dataset && el.dataset.k;
+  if (!k) return;
+  if (el.type === 'radio') { if (el.checked) S.f[k] = el.value; }
+  else if (el.type === 'checkbox') S.f[k] = el.checked;
+  else S.f[k] = el.value;
+  if (el.tagName === 'TEXTAREA') autosize(el);
+  save();
+});
+document.addEventListener('change', e => { if (e.target.matches('select[data-k], input[type=radio], input[type=checkbox]')) e.target.dispatchEvent(new Event('input', {bubbles:true})); });
+
+/* ---------- navegación ---------- */
+function recommendedDay(){
+  if (!S.start) return null;
+  const d = Math.floor((Date.now() - S.start) / 864e5) + 1;
+  return d >= 1 && d <= 7 ? d : null;
+}
+function go(view, scroll = true){
+  if (!VIEWS.includes(String(view))) view = 'inicio';
+  S.view = String(view);
+  $$('.view').forEach(s => s.classList.toggle('on', s.dataset.view === S.view));
+  $$('.view.on textarea').forEach(autosize);
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {}
+  render();
+  if (scroll) window.scrollTo({top:0, behavior:'smooth'});
+  const on = $('.rd.on'); if (on) on.scrollIntoView({block:'nearest', inline:'center'});
+}
+document.addEventListener('click', e => {
+  const g = e.target.closest('[data-go]'); if (g) return go(g.dataset.go);
+  const d = e.target.closest('[data-done]');
+  if (d) {
+    const n = +d.dataset.done; S.done[n] = !S.done[n]; save();
+    if (S.done[n]) setTimeout(() => go(n === 7 ? 'cierre' : n + 1), 350);
+    return;
+  }
+  const t = e.target.closest('[data-tick]'); if (t) { const n = +t.dataset.tick; S.done[n] = !S.done[n]; save(); }
+});
+$('#startBtn').addEventListener('click', () => {
+  if (!S.start) { const t = new Date(); t.setHours(0,0,0,0); S.start = t.getTime(); }
+  save(); go(1);
+});
+
+/* rounds */
+$('#rounds').innerHTML =
+  `<button class="rd wide" data-go="inicio"><span><small>KOF</small><b>INICIO</b></span></button>` +
+  [1,2,3,4,5,6,7].map(n => `<button class="rd" data-go="${n}" data-rd="${n}"><span><small>DÍA</small><b>${n}</b></span></button>`).join('') +
+  `<button class="rd wide" data-go="cierre"><span><small>FINAL</small><b>CIERRE</b></span></button>`;
+
+/* ---------- render de estado ---------- */
+function windowText(x){
+  const dia = v(`d2_${x}_dia`), hora = v(`d2_${x}_hora`), lugar = v(`d2_${x}_lugar`);
+  return [dia, hora, lugar].filter(Boolean).join(' · ');
+}
+function setRef(el, label, value, emptyMsg){
+  el.classList.toggle('empty', !value);
+  el.innerHTML = value ? `<b>${label}:</b> ${esc(value)}` : emptyMsg;
+}
+function esc(s){ return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function setSum(key, text){
+  const p = $(`[data-sum="${key}"]`); p.textContent = text || 'Aún sin completar'; p.classList.toggle('empty', !text);
+}
+
+function render(){
+  const doneCount = [1,2,3,4,5,6,7].filter(n => S.done[n]).length;
+  $('#progFill').style.width = (doneCount / 7 * 100) + '%';
+  $('#progTxt').textContent = `${doneCount} / 7 DÍAS`;
+  const hoy = recommendedDay();
+  $$('.rd').forEach(b => {
+    b.classList.toggle('on', b.dataset.go === S.view);
+    const n = +b.dataset.rd;
+    if (n) {
+      b.classList.toggle('done', !!S.done[n]);
+      let tag = $('.hoy', b);
+      if (n === hoy && !tag) b.insertAdjacentHTML('beforeend', '<i class="hoy">HOY</i>');
+      if (n !== hoy && tag) tag.remove();
+    }
+  });
+  $$('[data-done]').forEach(b => {
+    const n = +b.dataset.done;
+    $('span', b).textContent = S.done[n] ? '✓ Día completado' : `Marcar día ${n} completado`;
+    b.classList.toggle('ghost', !!S.done[n]);
+  });
+  $$('[data-tick]').forEach(b => {
+    const n = +b.dataset.tick;
+    b.setAttribute('aria-pressed', !!S.done[n]);
+    b.closest('tr').classList.toggle('done', !!S.done[n]);
+  });
+
+  // inicio
+  const nombre = v('nombre');
+  $('#startBtn span').textContent = S.start
+    ? (hoy && !S.done[hoy] ? `Ir al día ${hoy} ▶` : 'Continuar ▶')
+    : 'Empezar Día 1 ▶';
+  $('#startHint').textContent = nombre ? `Vamos, ${nombre}. Un día a la vez.` : '';
+  $('#printName').textContent = nombre ? `Cuaderno de ${nombre}` : '';
+
+  // referencias cruzadas
+  setRef($('[data-ref="d1_momentos"]'), 'Tus momentos disponibles (Día 1)', v('d1_momentos'), 'Consejo: en el Día 1 anotaste tus momentos disponibles; úsalos como base.');
+  setRef($('[data-ref="win_a"]'), 'Tu Ventana A', windowText('a'), 'Aún no defines tu Ventana A. Puedes hacerlo en el Día 2.');
+  setRef($('[data-ref="win_b"]'), 'Tu Ventana B', windowText('b'), 'Aún no defines tu Ventana B. Puedes hacerlo en el Día 2.');
+  setRef($('[data-ref="win_c"]'), 'Tu Ventana C', windowText('c'), 'Aún no defines tu Ventana C. Puedes hacerlo en el Día 2.');
+  setRef($('[data-ref="d2_alternativa"]'), 'Tu alternativa de 10–15 min (Día 2)', v('d2_alternativa'), 'Aún no defines tu alternativa de 10–15 minutos (Día 2).');
+
+  // días seguidos
+  const idx = ['a','b','c'].map(x => DAYS.indexOf(v(`d2_${x}_dia`))).filter(i => i >= 0).sort((a,b) => a - b);
+  let close = false;
+  for (let i = 0; i < idx.length; i++) for (let j = i + 1; j < idx.length; j++) {
+    const diff = idx[j] - idx[i]; if (diff <= 1 || diff === 6) close = true;
+  }
+  $('#recoveryNote').hidden = !close;
+
+  // día 7
+  const logged = (['si','adaptada'].includes(v('d3_sesion')) ? 1 : 0) + (v('d5_sesion') === 'si' ? 1 : 0);
+  $('#trainHint').textContent = `Según tus registros de los días 3 y 5: ${logged}. Suma la tercera si la hiciste.`;
+  const e1 = v('d1_energia'), e7 = v('d7_energia');
+  $('#energyHint').textContent = e1 ? `El Día 1 marcaste ${e1}/10.` + (e7 ? ` Hoy: ${e7}/10 (${e7 - e1 >= 0 ? '+' : ''}${e7 - e1}).` : '') : '';
+
+  // resumen
+  const obsChips = ['reuniones','cansancio','viajes','familia','horarios'].filter(o => S.f['d1_obs_' + o]).map(o => o[0].toUpperCase() + o.slice(1));
+  setSum('obstaculo', [obsChips.join(', '), v('d1_obstaculo')].filter(Boolean).join('\n'));
+  setSum('ventanas', ['a','b','c'].map(x => windowText(x) && `${x.toUpperCase()}: ${windowText(x)}`).filter(Boolean).join('\n'));
+  setSum('planb', [v('d2_alternativa'), v('d6_accion') && 'Si pasa: ' + v('d6_accion')].filter(Boolean).join('\n'));
+  setSum('aprendizaje', v('d7_aprendizaje'));
+  setSum('compromiso', v('d7_compromiso'));
+  $('#stDays').textContent = `${doneCount}/7`;
+  $('#stTrain').textContent = v('d7_entrenos') !== '' ? `${v('d7_entrenos')}/3` : (logged ? `${logged}/3` : '–');
+  $('#stEnergy').textContent = e7 ? (e1 ? `${e1}→${e7}` : e7) : (e1 || '–');
+}
+
+/* ---------- menú ---------- */
+const drop = $('#drop'), menuBtn = $('#menuBtn');
+menuBtn.addEventListener('click', e => { e.stopPropagation(); drop.hidden = !drop.hidden; menuBtn.setAttribute('aria-expanded', !drop.hidden); });
+document.addEventListener('click', e => { if (!drop.hidden && !drop.contains(e.target)) { drop.hidden = true; menuBtn.setAttribute('aria-expanded', false); } });
+drop.addEventListener('click', e => {
+  const act = e.target.closest('[data-act]'); if (!act) return;
+  drop.hidden = true;
+  if (act.dataset.act === 'print') window.print();
+  if (act.dataset.act === 'export') {
+    const name = (v('nombre') || 'mis-respuestas').toLowerCase().replace(/[^a-z0-9áéíóúñ]+/gi, '-');
+    const blob = new Blob([JSON.stringify(S, null, 2)], {type:'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `kof-reset-${name}.json`; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  if (act.dataset.act === 'import') $('#importFile').click();
+  if (act.dataset.act === 'reset' && confirm('¿Borrar todas tus respuestas de este dispositivo? No se puede deshacer.')) {
+    S = blank(); save(); bindFields(); go('inicio');
+  }
+});
+$('#importFile').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  file.text().then(txt => {
+    const data = JSON.parse(txt);
+    if (!data || typeof data.f !== 'object') throw 0;
+    S = Object.assign(blank(), data); save(); bindFields(); go(S.view);
+    alert('Respuestas cargadas correctamente.');
+  }).catch(() => alert('Ese archivo no es una copia válida del cuaderno.'));
+  e.target.value = '';
+});
+
+/* impresión: mostrar todo y ajustar alturas */
+window.addEventListener('beforeprint', () => { $$('.view').forEach(s => s.style.display = 'block'); $$('textarea').forEach(autosize); });
+window.addEventListener('afterprint', () => { $$('.view').forEach(s => s.style.display = ''); });
+
+go(S.view, false);
+</script>
+</body>
+</html>

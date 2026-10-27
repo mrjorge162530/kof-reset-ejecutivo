@@ -1,0 +1,12 @@
+{
+  "name": "kof-reset-ejecutivo",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "cf": "^0.15.0",
+    "wrangler": "^4.153.0"
+  },
+  "scripts": {
+    "deploy": "wrangler deploy --assets ./public --name kof-reset-ejecutivo --compatibility-date 2026-09-21"
+  }
+}
