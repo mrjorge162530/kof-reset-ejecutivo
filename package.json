@@ -3,10 +3,11 @@
   "private": true,
   "type": "module",
   "devDependencies": {
-    "cf": "^0.15.0",
     "wrangler": "^4.153.0"
   },
   "scripts": {
-    "deploy": "wrangler deploy --assets ./public --name kof-reset-ejecutivo --compatibility-date 2026-09-21"
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "db:migrate": "wrangler d1 migrations apply kof-reset-ejecutivo --remote"
   }
 }

@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "kof-reset-ejecutivo",
+  "account_id": "5ef62c71695fe22ba13291f7f9e195c2",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-21",
+  "observability": { "enabled": true },
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "kof-reset-ejecutivo",
+      "database_id": "e07d6a66-6c09-4af2-a8b1-6ea3635fcb23",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "vars": {
+    "COACH_EMAIL": "beonpointrd1@gmail.com"
+  }
+  // Secreto requerido (no va en el repo): RESEND_API_KEY
+}

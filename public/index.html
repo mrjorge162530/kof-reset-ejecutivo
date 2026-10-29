@@ -121,7 +121,7 @@ main{max-width:880px; margin:0 auto; padding:36px 16px 72px}
 .q{margin:28px 0}
 .q > .lbl, label > .lbl{display:block; font-weight:700; font-size:16px; margin-bottom:8px; color:var(--white)}
 .hint{display:block; color:var(--mut); font-size:13px; font-weight:500; margin-top:-4px; margin-bottom:10px}
-textarea, input[type=text], input[type=number], input[type=time], select{width:100%; background:var(--black2); color:var(--txt); border:1px solid var(--line2); border-radius:10px; padding:12px 14px; font-size:16px; transition:border-color .2s, background .2s}
+textarea, input[type=text], input[type=email], input[type=tel], input[type=number], input[type=time], select{width:100%; background:var(--black2); color:var(--txt); border:1px solid var(--line2); border-radius:10px; padding:12px 14px; font-size:16px; transition:border-color .2s, background .2s}
 textarea{min-height:84px; resize:vertical; line-height:1.55; overflow:hidden}
 textarea:focus, input:focus, select:focus{outline:none; border-color:var(--white); background:var(--black3)}
 ::placeholder{color:#8a8a8a}
@@ -277,12 +277,19 @@ footer .logo{font-size:15px; letter-spacing:0; margin-right:6px}
   <div class="card">
     <div class="name-row">
       <label><span class="lbl">¿Cómo te llamas?</span>
-        <input type="text" data-k="nombre" placeholder="Tu nombre" autocomplete="given-name"></label>
+        <input type="text" data-k="nombre" placeholder="Tu nombre" autocomplete="name"></label>
     </div>
+    <div class="name-row" style="margin-top:12px">
+      <label><span class="lbl">Correo</span>
+        <input type="email" data-k="email" placeholder="tu@correo.com" autocomplete="email" inputmode="email"></label>
+      <label><span class="lbl">WhatsApp</span>
+        <input type="tel" data-k="whatsapp" placeholder="+1 809 000 0000" autocomplete="tel" inputmode="tel"></label>
+    </div>
+    <p class="hint" style="margin:10px 0 0">Tu coach KOF recibe tus respuestas cada vez que completas un día, para acompañarte durante la semana.</p>
     <ul class="how">
       <li><b>1</b><span>Mira el vídeo del día y abre aquí su tarea.</span></li>
       <li><b>2</b><span>Escribe tus respuestas. Se guardan solas en este dispositivo.</span></li>
-      <li><b>3</b><span>Marca el día como completado y vuelve mañana.</span></li>
+      <li><b>3</b><span>Marca el día como completado: se envía a tu coach.</span></li>
     </ul>
   </div>
 
@@ -642,15 +649,53 @@ document.addEventListener('click', e => {
   const d = e.target.closest('[data-done]');
   if (d) {
     const n = +d.dataset.done; S.done[n] = !S.done[n]; save();
-    if (S.done[n]) setTimeout(() => go(n === 7 ? 'cierre' : n + 1), 350);
+    if (S.done[n]) { enviar(n); setTimeout(() => go(n === 7 ? 'cierre' : n + 1), 350); }
     return;
   }
-  const t = e.target.closest('[data-tick]'); if (t) { const n = +t.dataset.tick; S.done[n] = !S.done[n]; save(); }
+  const t = e.target.closest('[data-tick]');
+  if (t) { const n = +t.dataset.tick; S.done[n] = !S.done[n]; save(); if (S.done[n]) enviar(n); }
 });
 $('#startBtn').addEventListener('click', () => {
+  const falta = [];
+  if (!v('nombre')) falta.push('tu nombre');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('email'))) falta.push('un correo válido');
+  if (v('whatsapp').replace(/\D/g, '').length < 7) falta.push('tu WhatsApp');
+  if (falta.length) {
+    const h = $('#startHint'); h.textContent = 'Para empezar escribe ' + falta.join(', ') + '.'; h.style.color = 'var(--red-hi)';
+    $('[data-k=' + (!v('nombre') ? 'nombre' : falta[0].includes('correo') ? 'email' : 'whatsapp') + ']').focus();
+    return;
+  }
+  $('#startHint').style.color = '';
   if (!S.start) { const t = new Date(); t.setHours(0,0,0,0); S.start = t.getTime(); }
   save(); go(1);
 });
+
+/* ---------- envío al coach (cola con reintento si no hay conexión) ---------- */
+function enviar(n){
+  if (!S.cid) S.cid = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+  S.pend = [...new Set([...(S.pend || []), n])];
+  save(); vaciarCola();
+}
+let enviando = false;
+async function vaciarCola(){
+  if (enviando || !S.pend || !S.pend.length || !navigator.onLine) return;
+  enviando = true;
+  try {
+    while (S.pend.length) {
+      const dia = S.pend[0];
+      const r = await fetch('/api/progreso', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({clientId: S.cid, dia, respuestas: S.f, done: S.done})
+      });
+      if (!r.ok && r.status >= 500) throw new Error('servidor');
+      S.pend.shift();
+      try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {}
+      const el = $('#saved'); el.textContent = '✓ Enviado a tu coach'; el.classList.add('flash');
+    }
+  } catch(e) { /* se reintenta al volver la conexión o al abrir de nuevo */ }
+  enviando = false;
+}
+window.addEventListener('online', vaciarCola);
 
 /* rounds */
 $('#rounds').innerHTML =
@@ -774,6 +819,7 @@ window.addEventListener('beforeprint', () => { $$('.view').forEach(s => s.style.
 window.addEventListener('afterprint', () => { $$('.view').forEach(s => s.style.display = ''); });
 
 go(S.view, false);
+vaciarCola();
 </script>
 </body>
 </html>
